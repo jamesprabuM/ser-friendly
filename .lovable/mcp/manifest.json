@@ -19,7 +19,7 @@
       {
         "name": "list_products",
         "title": "List products",
-        "description": "List published products in the Kani Estate catalog with price, stock, and category.",
+        "description": "List published products in the Kani Estate catalog with price (paise), stock, and category.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -30,14 +30,23 @@
           "type": "object",
           "properties": {
             "category": {
-              "description": "Optional category filter (e.g. 'coffee', 'spice', 'gift').",
-              "type": "string"
+              "description": "Optional category filter.",
+              "type": "string",
+              "enum": [
+                "coffee",
+                "spice",
+                "gift"
+              ]
             },
             "limit": {
-              "description": "Max rows to return (default 50).",
+              "description": "Max rows to return (1-100, default 50).",
               "type": "integer",
               "minimum": 1,
               "maximum": 100
+            },
+            "featured_only": {
+              "description": "If true, only return featured products.",
+              "type": "boolean"
             }
           }
         },
