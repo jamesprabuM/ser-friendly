@@ -45,7 +45,7 @@ function CheckoutPage() {
     setBusy(true);
     try {
       const { data, error } = await supabase.from("orders").insert({
-        user_id: user?.id ?? null,
+        user_id: user?.id ?? undefined,
         email: form.email,
         status: "pending",
         subtotal_cents: subtotal,
