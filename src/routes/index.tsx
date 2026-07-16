@@ -40,6 +40,8 @@ function HomePage() {
             className="absolute inset-0 h-full w-full object-cover"
             width={1920}
             height={1280}
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-espresso/30 via-espresso/10 to-background" />
           <div className="relative z-10 h-full container-estate flex flex-col justify-end pb-20 md:pb-32">

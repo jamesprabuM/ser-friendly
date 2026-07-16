@@ -20,8 +20,10 @@ export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
       { title: "Checkout — Kani Estate" },
+      { name: "description", content: "Complete your Kani Estate order — secure Razorpay checkout for single-origin coffee and heirloom spices, shipped across India." },
       { name: "robots", content: "noindex" },
     ],
+    links: [{ rel: "canonical", href: "/checkout" }],
   }),
   component: CheckoutPage,
 });

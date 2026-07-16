@@ -10,8 +10,10 @@ export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
       { title: "Account — Kani Estate" },
+      { name: "description", content: "Your Kani Estate account — review order history, payment status and shipment updates for your single-origin coffee and spice orders." },
       { name: "robots", content: "noindex" },
     ],
+    links: [{ rel: "canonical", href: "/account" }],
   }),
   component: AccountPage,
 });

@@ -87,8 +87,10 @@ function ShopPage() {
             })}
           </div>
           <div className="flex items-center gap-3 text-xs">
-            <label className="text-muted-foreground uppercase tracking-widest">Sort</label>
+            <label htmlFor="shop-sort" className="text-muted-foreground uppercase tracking-widest">Sort</label>
             <select
+              id="shop-sort"
+              aria-label="Sort products"
               value={search.sort ?? "featured"}
               onChange={(e) =>
                 navigate({ search: (s: z.infer<typeof searchSchema>) => ({ ...s, sort: e.target.value === "featured" ? undefined : (e.target.value as "price-asc" | "price-desc") }) })
