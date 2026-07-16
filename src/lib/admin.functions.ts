@@ -124,3 +124,48 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       users,
     };
   });
+
+export const updateProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: {
+    id: string;
+    name?: string;
+    category?: string;
+    price_cents?: number;
+    stock?: number;
+    featured?: boolean;
+    published?: boolean;
+    short_description?: string | null;
+    weight?: string | null;
+    origin?: string | null;
+    roast?: string | null;
+  }) => input)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { id, ...patch } = data;
+    if (patch.price_cents !== undefined && (!Number.isFinite(patch.price_cents) || patch.price_cents < 0)) {
+      throw new Error("Invalid price");
+    }
+    if (patch.stock !== undefined && (!Number.isInteger(patch.stock) || patch.stock < 0)) {
+      throw new Error("Invalid stock");
+    }
+    const clean: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(patch)) if (v !== undefined) clean[k] = v;
+    const { error } = await supabaseAdmin.from("products").update(clean as never).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateOrderStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; status: "pending" | "paid" | "shipped" | "cancelled" | "failed" }) => input)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: Record<string, unknown> = { status: data.status };
+    if (data.status === "paid") patch.paid_at = new Date().toISOString();
+    const { error } = await supabaseAdmin.from("orders").update(patch as never).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
