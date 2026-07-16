@@ -75,7 +75,7 @@ function ShopPage() {
               return (
                 <button
                   key={c.label}
-                  onClick={() => navigate({ search: (s) => ({ ...s, category: c.key }) })}
+                  onClick={() => navigate({ search: (s: z.infer<typeof searchSchema>) => ({ ...s, category: c.key }) })}
                   className={
                     "px-4 py-2 text-xs uppercase tracking-widest rounded-full transition " +
                     (active ? "bg-primary text-primary-foreground" : "hover:bg-secondary")
@@ -91,7 +91,7 @@ function ShopPage() {
             <select
               value={search.sort ?? "featured"}
               onChange={(e) =>
-                navigate({ search: (s) => ({ ...s, sort: e.target.value === "featured" ? undefined : (e.target.value as "price-asc" | "price-desc") }) })
+                navigate({ search: (s: z.infer<typeof searchSchema>) => ({ ...s, sort: e.target.value === "featured" ? undefined : (e.target.value as "price-asc" | "price-desc") }) })
               }
               className="bg-transparent border-b border-border py-1 focus:outline-none"
             >
