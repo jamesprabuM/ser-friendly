@@ -7,6 +7,9 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : "",
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — Kani Estate" },
@@ -17,6 +20,12 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+// Only accept a same-origin relative path so we can't be used as an open redirector.
+function safeNext(next: string): string | null {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
 function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -24,10 +33,20 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const safe = safeNext(next);
+  const returnTarget = safe ?? "/account";
+  const absoluteReturn = typeof window !== "undefined"
+    ? window.location.origin + returnTarget
+    : returnTarget;
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/account" });
-  }, [user, loading, navigate]);
+    if (!loading && user) {
+      // Use a full navigation for consent so the freshly-loaded session is present.
+      if (safe) window.location.href = safe;
+      else navigate({ to: "/account" });
+    }
+  }, [user, loading, navigate, safe]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +55,7 @@ function AuthPage() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { emailRedirectTo: window.location.origin + "/account" },
+          options: { emailRedirectTo: absoluteReturn },
         });
         if (error) throw error;
         toast.success("Check your email to confirm your account.");
@@ -55,7 +74,7 @@ function AuthPage() {
   async function google() {
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/account" });
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: absoluteReturn });
       if (result.error) toast.error(result.error.message ?? "Google sign-in failed");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Google sign-in failed");
