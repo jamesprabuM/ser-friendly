@@ -5,7 +5,7 @@ import { useCart } from "@/lib/cart";
 import { imageFor } from "@/lib/product-images";
 import { formatPrice } from "@/lib/format";
 
-const FREE_SHIP = 5000; // $50
+const FREE_SHIP = 200000; // ₹2,000
 
 export function CartDrawer() {
   const { isOpen, close, lines, setQty, subtotal, count } = useCart();
