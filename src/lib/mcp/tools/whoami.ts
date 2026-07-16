@@ -1,4 +1,5 @@
 import { defineTool } from "@lovable.dev/mcp-js";
+import { err, ok, requireAuth } from "./_helpers";
 
 export default defineTool({
   name: "whoami",
@@ -7,13 +8,17 @@ export default defineTool({
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: (_input, ctx) => {
-    if (!ctx.isAuthenticated()) {
-      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    const authErr = requireAuth(ctx);
+    if (authErr) return authErr;
+    try {
+      const info = {
+        user_id: ctx.getUserId(),
+        email: ctx.getUserEmail() ?? null,
+        client_id: ctx.getClientId() ?? null,
+      };
+      return ok(JSON.stringify(info, null, 2), info);
+    } catch (e) {
+      return err(e instanceof Error ? e.message : "Unexpected error", "internal_error");
     }
-    const info = { user_id: ctx.getUserId(), email: ctx.getUserEmail() ?? null };
-    return {
-      content: [{ type: "text", text: JSON.stringify(info, null, 2) }],
-      structuredContent: info,
-    };
   },
 });
