@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/site-layout";
 import { useAuth } from "@/lib/auth-context";
 import { formatPrice } from "@/lib/format";
-import { getAdminOverview } from "@/lib/admin.functions";
+import { getAdminOverview, updateProduct, updateOrderStatus } from "@/lib/admin.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
