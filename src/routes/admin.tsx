@@ -178,8 +178,6 @@ function Overview({ data }: { data: import("@/lib/admin.functions").AdminOvervie
   );
 }
 
-// Only for type inference in Overview
-function useDataStub() { return undefined as unknown as import("@/lib/admin.functions").AdminOverview; }
 
 function Orders({
   data,
