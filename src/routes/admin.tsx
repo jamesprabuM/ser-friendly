@@ -140,7 +140,7 @@ function StatusBadge({ status, paidAt }: { status: string; paidAt: string | null
   );
 }
 
-function Overview({ data }: { data: NonNullable<ReturnType<typeof useDataStub>> }) {
+function Overview({ data }: { data: import("@/lib/admin.functions").AdminOverview }) {
   return (
     <div className="space-y-10">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

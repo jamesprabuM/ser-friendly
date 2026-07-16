@@ -15,6 +15,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
@@ -50,6 +51,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -74,6 +80,7 @@ const CheckoutThanksRoute = CheckoutThanksRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/journal': typeof JournalRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/journal': typeof JournalRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/journal': typeof JournalRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/admin'
     | '/auth'
     | '/checkout'
     | '/journal'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/admin'
     | '/auth'
     | '/checkout'
     | '/journal'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/admin'
     | '/auth'
     | '/checkout'
     | '/journal'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRouteWithChildren
   JournalRoute: typeof JournalRoute
@@ -203,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account': {
       id: '/account'
       path: '/account'
@@ -249,6 +269,7 @@ const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRouteWithChildren,
   JournalRoute: JournalRoute,
