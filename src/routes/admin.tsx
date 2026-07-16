@@ -253,12 +253,60 @@ function Orders({
                       ))}
                     </ul>
                   </div>
+                  <OrderStatusControls id={o.id} status={o.status} />
                 </div>
               )}
             </li>
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+function OrderStatusControls({ id, status }: { id: string; status: string }) {
+  const qc = useQueryClient();
+  const update = useServerFn(updateOrderStatus);
+  const [busy, setBusy] = useState<string | null>(null);
+  const options: Array<{ v: "pending" | "paid" | "shipped" | "cancelled" | "failed"; label: string }> = [
+    { v: "pending", label: "Pending" },
+    { v: "paid", label: "Mark paid" },
+    { v: "shipped", label: "Shipped" },
+    { v: "cancelled", label: "Cancelled" },
+    { v: "failed", label: "Failed" },
+  ];
+  async function set(v: typeof options[number]["v"]) {
+    setBusy(v);
+    try {
+      await update({ data: { id, status: v } });
+      toast.success(`Order marked ${v}`);
+      await qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
+  return (
+    <div className="mt-5 pt-4 border-t border-border">
+      <p className="eyebrow">Update status</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {options.map((o) => (
+          <button
+            key={o.v}
+            disabled={busy !== null || status === o.v}
+            onClick={() => set(o.v)}
+            className={
+              "text-xs px-3 py-1.5 rounded-full border transition " +
+              (status === o.v
+                ? "bg-foreground text-background border-foreground"
+                : "border-border hover:bg-muted")
+            }
+          >
+            {busy === o.v ? "…" : o.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
