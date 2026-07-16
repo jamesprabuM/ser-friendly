@@ -13,7 +13,6 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/shop", priority: "0.9", changefreq: "daily" },
           { path: "/story", priority: "0.7", changefreq: "monthly" },
           { path: "/journal", priority: "0.6", changefreq: "weekly" },
-          { path: "/auth", priority: "0.3", changefreq: "yearly" },
         ];
 
         const url = process.env.SUPABASE_URL;
