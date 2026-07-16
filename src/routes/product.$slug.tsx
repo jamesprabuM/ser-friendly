@@ -26,16 +26,47 @@ export const Route = createFileRoute("/product/$slug")({
     context.queryClient.ensureQueryData(allQO);
     return product;
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     if (!loaderData) {
       return { meta: [{ title: "Not found" }, { name: "robots", content: "noindex" }] };
     }
+    const url = `https://ser-friendly.lovable.app/product/${params.slug}`;
+    const image = `https://ser-friendly.lovable.app${imageFor(loaderData.image_key)}`;
+    const desc = loaderData.short_description ?? "Single-origin from Kani Estate.";
     return {
       meta: [
         { title: `${loaderData.name} — Kani Estate` },
-        { name: "description", content: loaderData.short_description ?? "Single-origin from Kani Estate." },
+        { name: "description", content: desc },
         { property: "og:title", content: `${loaderData.name} — Kani Estate` },
-        { property: "og:description", content: loaderData.short_description ?? "Single-origin from Kani Estate." },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: image },
+        { name: "twitter:image", content: image },
+      ],
+      links: [{ rel: "canonical", href: `/product/${params.slug}` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: loaderData.name,
+            description: desc,
+            image,
+            category: loaderData.category,
+            brand: { "@type": "Brand", name: "Kani Estate" },
+            offers: {
+              "@type": "Offer",
+              url,
+              priceCurrency: "INR",
+              price: (loaderData.price_cents / 100).toFixed(2),
+              availability: loaderData.stock > 0
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+            },
+          }),
+        },
       ],
     };
   },

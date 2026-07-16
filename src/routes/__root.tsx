@@ -97,6 +97,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     scripts: [
       { src: "https://checkout.razorpay.com/v1/checkout.js", defer: true },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Kani Estate",
+          url: "https://ser-friendly.lovable.app",
+          description: "Small-lot single-origin coffee and heirloom spices, grown and cured on our family estate since 1890.",
+          foundingDate: "1890",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Kani Estate",
+          url: "https://ser-friendly.lovable.app",
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
