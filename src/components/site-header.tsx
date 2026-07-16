@@ -68,6 +68,16 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1">
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary transition"
+              aria-label="Admin"
+              title="Admin"
+            >
+              <ShieldCheck className="h-4 w-4" />
+            </Link>
+          )}
           <Link
             to={user ? "/account" : "/auth"}
             className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary transition"
