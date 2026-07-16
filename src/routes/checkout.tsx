@@ -7,6 +7,14 @@ import { imageFor } from "@/lib/product-images";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
+
+declare global {
+  interface Window {
+    Razorpay: new (opts: Record<string, unknown>) => { open: () => void };
+  }
+}
+
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
