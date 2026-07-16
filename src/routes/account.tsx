@@ -49,7 +49,7 @@ function AccountPage() {
     queryFn: async (): Promise<Order[]> => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, created_at, status, total_cents, order_items(product_name, quantity)")
+        .select("id, created_at, status, total_cents, razorpay_order_id, razorpay_payment_id, paid_at, order_items(product_name, quantity)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as Order[];
@@ -79,23 +79,47 @@ function AccountPage() {
               </div>
             ) : (
               <ul className="divide-y divide-border">
-                {orders.map((o) => (
-                  <li key={o.id} className="py-6 flex flex-wrap items-center gap-6 justify-between">
-                    <div>
-                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                      <p className="mt-1 text-sm">{new Date(o.created_at).toLocaleDateString()}</p>
-                      {o.order_items && o.order_items.length > 0 && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {o.order_items.map((i) => `${i.quantity}× ${i.product_name}`).join(", ")}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="eyebrow">{o.status}</p>
-                      <p className="mt-1 font-serif text-lg">{formatPrice(o.total_cents)}</p>
-                    </div>
-                  </li>
-                ))}
+                {orders.map((o) => {
+                  const badge = paymentBadge(o.status, o.paid_at);
+                  return (
+                    <li key={o.id} className="py-6 flex flex-wrap items-start gap-6 justify-between">
+                      <div className="min-w-0">
+                        <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                        <p className="mt-1 text-sm">{new Date(o.created_at).toLocaleDateString()}</p>
+                        {o.order_items && o.order_items.length > 0 && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {o.order_items.map((i) => `${i.quantity}× ${i.product_name}`).join(", ")}
+                          </p>
+                        )}
+                        <dl className="mt-3 space-y-1 text-xs">
+                          {o.razorpay_payment_id ? (
+                            <div className="flex gap-2">
+                              <dt className="text-muted-foreground">Payment ref</dt>
+                              <dd className="font-mono break-all">{o.razorpay_payment_id}</dd>
+                            </div>
+                          ) : o.razorpay_order_id ? (
+                            <div className="flex gap-2">
+                              <dt className="text-muted-foreground">Razorpay order</dt>
+                              <dd className="font-mono break-all">{o.razorpay_order_id}</dd>
+                            </div>
+                          ) : null}
+                          {o.paid_at && (
+                            <div className="flex gap-2">
+                              <dt className="text-muted-foreground">Paid on</dt>
+                              <dd>{new Date(o.paid_at).toLocaleString()}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] uppercase tracking-wider ${badge.cls}`}>
+                          {badge.label}
+                        </span>
+                        <p className="mt-2 font-serif text-lg">{formatPrice(o.total_cents)}</p>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
