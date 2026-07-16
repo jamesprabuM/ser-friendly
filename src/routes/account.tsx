@@ -21,7 +21,7 @@ interface Order {
   created_at: string;
   status: string;
   total_cents: number;
-  items: { name: string; quantity: number }[] | null;
+  order_items: { product_name: string; quantity: number }[] | null;
 }
 
 function AccountPage() {
@@ -38,7 +38,7 @@ function AccountPage() {
     queryFn: async (): Promise<Order[]> => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, created_at, status, total_cents, items")
+        .select("id, created_at, status, total_cents, order_items(product_name, quantity)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as Order[];
@@ -73,9 +73,9 @@ function AccountPage() {
                     <div>
                       <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
                       <p className="mt-1 text-sm">{new Date(o.created_at).toLocaleDateString()}</p>
-                      {o.items && (
+                      {o.order_items && o.order_items.length > 0 && (
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {o.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}
+                          {o.order_items.map((i) => `${i.quantity}× ${i.product_name}`).join(", ")}
                         </p>
                       )}
                     </div>

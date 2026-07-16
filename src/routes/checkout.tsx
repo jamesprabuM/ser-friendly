@@ -4,7 +4,7 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth-context";
 import { formatPrice } from "@/lib/format";
 import { imageFor } from "@/lib/product-images";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -20,17 +20,29 @@ export const Route = createFileRoute("/checkout")({
 
 function CheckoutPage() {
   const { lines, subtotal, clear } = useCart();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
-    email: user?.email ?? "",
+    email: "",
     name: "",
     address: "",
     city: "",
-    zip: "",
+    postal: "",
     country: "United States",
+    notes: "",
   });
+
+  useEffect(() => {
+    if (user?.email) setForm((f) => ({ ...f, email: f.email || user.email! }));
+  }, [user]);
+
+  useEffect(() => {
+    if (!loading && !user && lines.length > 0) {
+      toast.info("Please sign in to complete your order.");
+      navigate({ to: "/auth" });
+    }
+  }, [loading, user, lines.length, navigate]);
 
   const shipping = subtotal >= 5000 || subtotal === 0 ? 0 : 800;
   const total = subtotal + shipping;
@@ -41,27 +53,39 @@ function CheckoutPage() {
 
   async function placeOrder(e: React.FormEvent) {
     e.preventDefault();
-    if (lines.length === 0) return;
+    if (!user || lines.length === 0) return;
     setBusy(true);
     try {
-      const { data, error } = await supabase.from("orders").insert({
-        user_id: user?.id ?? undefined,
-        email: form.email,
+      const { data: order, error } = await supabase.from("orders").insert({
+        user_id: user.id,
         status: "pending",
         subtotal_cents: subtotal,
         shipping_cents: shipping,
         total_cents: total,
-        shipping_address: {
-          name: form.name, address: form.address, city: form.city, zip: form.zip, country: form.country,
-        },
-        items: lines.map((l) => ({
-          product_id: l.productId, name: l.name, quantity: l.quantity, price_cents: l.price_cents,
-        })),
+        ship_name: form.name,
+        ship_email: form.email,
+        ship_address: form.address,
+        ship_city: form.city,
+        ship_postal: form.postal,
+        ship_country: form.country,
+        notes: form.notes || null,
       }).select("id").single();
       if (error) throw error;
+
+      const { error: itemsErr } = await supabase.from("order_items").insert(
+        lines.map((l) => ({
+          order_id: order.id,
+          product_id: l.productId,
+          product_name: l.name,
+          quantity: l.quantity,
+          unit_price_cents: l.price_cents,
+        })),
+      );
+      if (itemsErr) throw itemsErr;
+
       clear();
       toast.success("Order placed. A confirmation is on its way.");
-      navigate({ to: "/checkout/thanks", search: { id: data.id } });
+      navigate({ to: "/checkout/thanks", search: { id: order.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not place order");
     } finally {
@@ -83,6 +107,8 @@ function CheckoutPage() {
     );
   }
 
+  if (!user) return null;
+
   return (
     <SiteLayout>
       <div className="container-estate py-16 max-w-6xl">
@@ -101,14 +127,19 @@ function CheckoutPage() {
               <Field label="Street address" value={form.address} onChange={(v) => update("address", v)} required />
               <div className="grid grid-cols-2 gap-4">
                 <Field label="City" value={form.city} onChange={(v) => update("city", v)} required />
-                <Field label="ZIP / Postal" value={form.zip} onChange={(v) => update("zip", v)} required />
+                <Field label="Postal code" value={form.postal} onChange={(v) => update("postal", v)} required />
               </div>
               <Field label="Country" value={form.country} onChange={(v) => update("country", v)} required />
+              <label className="block">
+                <span className="text-xs uppercase tracking-widest text-muted-foreground">Notes (optional)</span>
+                <textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} rows={2}
+                  className="mt-2 w-full border-b border-border bg-transparent py-2 focus:outline-none focus:border-foreground resize-none" />
+              </label>
             </fieldset>
 
             <div className="pt-6 border-t border-border space-y-3 text-sm">
               <p className="text-muted-foreground">
-                This is a demo checkout. Payments are not charged; your order is recorded in your account.
+                This is a demo checkout — no payment is captured. Your order is recorded in your account.
               </p>
               <button type="submit" disabled={busy}
                 className="w-full rounded-sm bg-primary px-6 py-4 text-sm text-primary-foreground hover:opacity-90 transition disabled:opacity-50">
