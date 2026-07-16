@@ -7,8 +7,10 @@ export const Route = createFileRoute("/checkout/thanks")({
   head: () => ({
     meta: [
       { title: "Thank you — Kani Estate" },
+      { name: "description", content: "Your Kani Estate order is confirmed. We'll roast, pack and ship it within the week and send tracking details by email." },
       { name: "robots", content: "noindex" },
     ],
+    links: [{ rel: "canonical", href: "/checkout/thanks" }],
   }),
   component: ThanksPage,
 });

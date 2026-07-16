@@ -15,6 +15,7 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in to your Kani Estate account to track orders and manage subscriptions." },
       { name: "robots", content: "noindex" },
     ],
+    links: [{ rel: "canonical", href: "/auth" }],
   }),
   component: AuthPage,
 });

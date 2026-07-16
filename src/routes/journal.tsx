@@ -8,6 +8,21 @@ export const Route = createFileRoute("/journal")({
       { name: "description", content: "Field notes from the estate — harvests, brewing, and cellar work." },
       { property: "og:title", content: "Journal — Kani Estate" },
       { property: "og:description", content: "Field notes from the estate." },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: "https://ser-friendly.lovable.app/journal" },
+    ],
+    links: [{ rel: "canonical", href: "/journal" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          name: "Kani Estate Journal",
+          description: "Field notes from Kani Estate — harvests, brewing, and cellar work.",
+          url: "https://ser-friendly.lovable.app/journal",
+        }),
+      },
     ],
   }),
   component: JournalPage,

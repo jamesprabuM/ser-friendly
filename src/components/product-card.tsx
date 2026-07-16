@@ -13,7 +13,7 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="relative aspect-square overflow-hidden bg-secondary">
         <img
           src={imageFor(product.image_key)}
-          alt={product.name}
+          alt={`${product.name} — single-origin ${product.category} from ${product.origin ?? "Kani Estate"}`}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
           width={900}

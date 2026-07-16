@@ -3,3 +3,6 @@ Allow: /
 Disallow: /auth
 Disallow: /account
 Disallow: /checkout
+Disallow: /admin
+
+Sitemap: https://ser-friendly.lovable.app/sitemap.xml

@@ -1,0 +1,16 @@
+# Kani Estate
+
+> Single-origin coffee and heirloom spices, grown, dried and cured by hand on our family estate in Huila since 1890.
+
+Kani Estate is a small-lot producer selling directly to customers. Every coffee and spice on the site is grown, processed and shipped from the same hillsides that four generations of our family have farmed.
+
+## Pages
+
+- [Home](/): Overview of the estate, featured single-origin lots, and current harvests.
+- [Shop](/shop): The full catalogue of coffees, spices and gift boxes with tasting notes and prices in INR.
+- [Our Story](/story): The estate's history, family, and approach to growing coffee and spices in cedar shade.
+- [Journal](/journal): Field notes from the estate — harvests, brewing recipes, and cellar work.
+
+## Optional
+
+- [Sign in](/auth): Customer account access (requires authentication).
