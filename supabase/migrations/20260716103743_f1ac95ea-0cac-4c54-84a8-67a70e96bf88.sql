@@ -1,0 +1,1 @@
+UPDATE public.products SET price_cents = GREATEST(ROUND(price_cents * 83.0 / 5000.0) * 5000, 5000);

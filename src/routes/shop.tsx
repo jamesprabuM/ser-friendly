@@ -63,7 +63,7 @@ function ShopPage() {
         <p className="eyebrow">Shop</p>
         <h1 className="mt-3 font-serif text-5xl md:text-6xl">The estate catalogue</h1>
         <p className="mt-4 max-w-xl text-muted-foreground">
-          Every lot is roasted or cured to order, then shipped within a week. Complimentary shipping on orders over $50.
+          Every lot is roasted or cured to order, then shipped within a week. Complimentary shipping on orders over ₹2,000.
         </p>
       </section>
 
