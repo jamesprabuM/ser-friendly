@@ -20,7 +20,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 // Only accept a same-origin relative path so we can't be used as an open redirector.
-function safeNext(next: string): string | null {
+function safeNext(next: string | undefined): string | null {
   if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
   return next;
 }
