@@ -152,7 +152,7 @@ export const updateProduct = createServerFn({ method: "POST" })
     }
     const clean: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(patch)) if (v !== undefined) clean[k] = v;
-    const { error } = await supabaseAdmin.from("products").update(clean).eq("id", id);
+    const { error } = await supabaseAdmin.from("products").update(clean as never).eq("id", id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
