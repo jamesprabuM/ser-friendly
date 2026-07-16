@@ -7,6 +7,14 @@ import { imageFor } from "@/lib/product-images";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
+
+declare global {
+  interface Window {
+    Razorpay: new (opts: Record<string, unknown>) => { open: () => void };
+  }
+}
+
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -83,15 +91,60 @@ function CheckoutPage() {
       );
       if (itemsErr) throw itemsErr;
 
-      clear();
-      toast.success("Order placed. A confirmation is on its way.");
-      navigate({ to: "/checkout/thanks", search: { id: order.id } });
+      // Create Razorpay order
+      const rzp = await createRazorpayOrder({ data: { orderId: order.id } });
+
+      if (typeof window === "undefined" || !window.Razorpay) {
+        toast.error("Payment library failed to load. Please refresh and try again.");
+        setBusy(false);
+        return;
+      }
+
+      const checkout = new window.Razorpay({
+        key: rzp.key_id,
+        amount: rzp.amount,
+        currency: rzp.currency,
+        name: "Kani Estate",
+        description: "Single-origin coffee & spices",
+        order_id: rzp.razorpay_order_id,
+        prefill: { name: form.name, email: form.email },
+        notes: { order_id: order.id },
+        theme: { color: "#3a2a1a" },
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            await verifyRazorpayPayment({
+              data: {
+                orderId: order.id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              },
+            });
+            clear();
+            toast.success("Payment received. Thank you.");
+            navigate({ to: "/checkout/thanks", search: { id: order.id } });
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Payment verification failed");
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            toast.info("Payment cancelled. Your order is saved as pending.");
+            setBusy(false);
+          },
+        },
+      });
+      checkout.open();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not place order");
-    } finally {
       setBusy(false);
     }
   }
+
 
   if (lines.length === 0) {
     return (
@@ -139,11 +192,11 @@ function CheckoutPage() {
 
             <div className="pt-6 border-t border-border space-y-3 text-sm">
               <p className="text-muted-foreground">
-                This is a demo checkout — no payment is captured. Your order is recorded in your account.
+                Secure payment via Razorpay. Test mode is active — use card <span className="font-mono">4111 1111 1111 1111</span>, any future expiry, any CVV.
               </p>
               <button type="submit" disabled={busy}
                 className="w-full rounded-sm bg-primary px-6 py-4 text-sm text-primary-foreground hover:opacity-90 transition disabled:opacity-50">
-                {busy ? "Placing order…" : `Place order · ${formatPrice(total)}`}
+                {busy ? "Preparing payment…" : `Pay ${formatPrice(total)}`}
               </button>
             </div>
           </form>

@@ -79,6 +79,9 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          paid_at: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
           ship_address: string
           ship_city: string
           ship_country: string
@@ -95,6 +98,9 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          paid_at?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           ship_address: string
           ship_city: string
           ship_country: string
@@ -111,6 +117,9 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          paid_at?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           ship_address?: string
           ship_city?: string
           ship_country?: string
