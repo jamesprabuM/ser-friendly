@@ -91,15 +91,60 @@ function CheckoutPage() {
       );
       if (itemsErr) throw itemsErr;
 
-      clear();
-      toast.success("Order placed. A confirmation is on its way.");
-      navigate({ to: "/checkout/thanks", search: { id: order.id } });
+      // Create Razorpay order
+      const rzp = await createRazorpayOrder({ data: { orderId: order.id } });
+
+      if (typeof window === "undefined" || !window.Razorpay) {
+        toast.error("Payment library failed to load. Please refresh and try again.");
+        setBusy(false);
+        return;
+      }
+
+      const checkout = new window.Razorpay({
+        key: rzp.key_id,
+        amount: rzp.amount,
+        currency: rzp.currency,
+        name: "Kani Estate",
+        description: "Single-origin coffee & spices",
+        order_id: rzp.razorpay_order_id,
+        prefill: { name: form.name, email: form.email },
+        notes: { order_id: order.id },
+        theme: { color: "#3a2a1a" },
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            await verifyRazorpayPayment({
+              data: {
+                orderId: order.id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              },
+            });
+            clear();
+            toast.success("Payment received. Thank you.");
+            navigate({ to: "/checkout/thanks", search: { id: order.id } });
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Payment verification failed");
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            toast.info("Payment cancelled. Your order is saved as pending.");
+            setBusy(false);
+          },
+        },
+      });
+      checkout.open();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not place order");
-    } finally {
       setBusy(false);
     }
   }
+
 
   if (lines.length === 0) {
     return (
