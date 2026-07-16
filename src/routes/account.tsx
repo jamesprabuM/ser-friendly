@@ -21,7 +21,18 @@ interface Order {
   created_at: string;
   status: string;
   total_cents: number;
+  razorpay_order_id: string | null;
+  razorpay_payment_id: string | null;
+  paid_at: string | null;
   order_items: { product_name: string; quantity: number }[] | null;
+}
+
+function paymentBadge(status: string, paidAt: string | null) {
+  const paid = status === "paid" || !!paidAt;
+  if (paid) return { label: "Paid", cls: "bg-[color:var(--forest)]/10 text-[color:var(--forest)] border-[color:var(--forest)]/30" };
+  if (status === "failed" || status === "cancelled")
+    return { label: status === "failed" ? "Failed" : "Cancelled", cls: "bg-destructive/10 text-destructive border-destructive/30" };
+  return { label: "Awaiting payment", cls: "bg-muted text-muted-foreground border-border" };
 }
 
 function AccountPage() {
