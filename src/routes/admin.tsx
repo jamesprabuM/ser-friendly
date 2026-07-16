@@ -273,38 +273,134 @@ function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
 }
 
 function Products({ data }: { data: import("@/lib/admin.functions").AdminOverview }) {
+  const [editing, setEditing] = useState<string | null>(null);
   return (
     <div className="border border-border rounded-md overflow-hidden">
-      <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-3 bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+      <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
         <span>Product</span>
         <span>Category</span>
         <span>Price</span>
         <span>Stock</span>
         <span>Status</span>
+        <span className="text-right">Edit</span>
       </div>
       <ul className="divide-y divide-border">
         {data.products.map((p) => (
-          <li key={p.id} className="px-5 py-4 md:grid md:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center">
-            <div>
-              <p className="text-sm">{p.name}</p>
-              <p className="font-mono text-xs text-muted-foreground">{p.slug}</p>
+          <li key={p.id}>
+            <div className="px-5 py-4 md:grid md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 items-center">
+              <div>
+                <p className="text-sm">{p.name}</p>
+                <p className="font-mono text-xs text-muted-foreground">{p.slug}</p>
+              </div>
+              <span className="text-sm capitalize">{p.category}</span>
+              <span className="font-serif">{formatPrice(p.price_cents)}</span>
+              <span className={"text-sm " + (p.stock < 10 ? "text-destructive" : "")}>{p.stock}</span>
+              <span className="flex gap-2 flex-wrap">
+                {p.published ? (
+                  <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-[color:var(--forest)]/30 text-[color:var(--forest)] bg-[color:var(--forest)]/10">Live</span>
+                ) : (
+                  <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-border text-muted-foreground">Draft</span>
+                )}
+                {p.featured && (
+                  <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-accent/40 text-accent-foreground bg-accent/10">Featured</span>
+                )}
+              </span>
+              <button
+                onClick={() => setEditing(editing === p.id ? null : p.id)}
+                className="text-xs underline text-right"
+              >
+                {editing === p.id ? "Close" : "Edit"}
+              </button>
             </div>
-            <span className="text-sm capitalize">{p.category}</span>
-            <span className="font-serif">{formatPrice(p.price_cents)}</span>
-            <span className={"text-sm " + (p.stock < 10 ? "text-destructive" : "")}>{p.stock}</span>
-            <span className="flex gap-2 flex-wrap">
-              {p.published ? (
-                <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-[color:var(--forest)]/30 text-[color:var(--forest)] bg-[color:var(--forest)]/10">Live</span>
-              ) : (
-                <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-border text-muted-foreground">Draft</span>
-              )}
-              {p.featured && (
-                <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-accent/40 text-accent-foreground bg-accent/10">Featured</span>
-              )}
-            </span>
+            {editing === p.id && (
+              <ProductEditor product={p} onDone={() => setEditing(null)} />
+            )}
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function ProductEditor({
+  product,
+  onDone,
+}: {
+  product: import("@/lib/admin.functions").AdminOverview["products"][number];
+  onDone: () => void;
+}) {
+  const qc = useQueryClient();
+  const save = useServerFn(updateProduct);
+  const [priceRupees, setPriceRupees] = useState(String(Math.round(product.price_cents / 100)));
+  const [stock, setStock] = useState(String(product.stock));
+  const [name, setName] = useState(product.name);
+  const [category, setCategory] = useState(product.category);
+  const [featured, setFeatured] = useState(product.featured);
+  const [published, setPublished] = useState(product.published);
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    const priceNum = Number(priceRupees);
+    const stockNum = Number(stock);
+    if (!Number.isFinite(priceNum) || priceNum < 0) return toast.error("Invalid price");
+    if (!Number.isInteger(stockNum) || stockNum < 0) return toast.error("Invalid stock");
+    setSaving(true);
+    try {
+      await save({
+        data: {
+          id: product.id,
+          name,
+          category,
+          price_cents: Math.round(priceNum * 100),
+          stock: stockNum,
+          featured,
+          published,
+        },
+      });
+      toast.success("Product updated");
+      await qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      onDone();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="px-5 pb-5 bg-muted/20 border-t border-border">
+      <div className="grid md:grid-cols-2 gap-4 pt-4">
+        <label className="text-xs">
+          <span className="eyebrow">Name</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full border border-border rounded px-3 py-2 bg-background text-sm" />
+        </label>
+        <label className="text-xs">
+          <span className="eyebrow">Category</span>
+          <input value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 w-full border border-border rounded px-3 py-2 bg-background text-sm" />
+        </label>
+        <label className="text-xs">
+          <span className="eyebrow">Price (₹)</span>
+          <input type="number" min="0" step="1" value={priceRupees} onChange={(e) => setPriceRupees(e.target.value)} className="mt-1 w-full border border-border rounded px-3 py-2 bg-background text-sm" />
+        </label>
+        <label className="text-xs">
+          <span className="eyebrow">Stock</span>
+          <input type="number" min="0" step="1" value={stock} onChange={(e) => setStock(e.target.value)} className="mt-1 w-full border border-border rounded px-3 py-2 bg-background text-sm" />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} />
+          Published (live on storefront)
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
+          Featured on homepage
+        </label>
+      </div>
+      <div className="mt-4 flex gap-3">
+        <button onClick={handleSave} disabled={saving} className="btn-estate">
+          {saving ? "Saving…" : "Save changes"}
+        </button>
+        <button onClick={onDone} className="text-sm underline">Cancel</button>
+      </div>
     </div>
   );
 }
