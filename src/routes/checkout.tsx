@@ -192,11 +192,11 @@ function CheckoutPage() {
 
             <div className="pt-6 border-t border-border space-y-3 text-sm">
               <p className="text-muted-foreground">
-                This is a demo checkout — no payment is captured. Your order is recorded in your account.
+                Secure payment via Razorpay. Test mode is active — use card <span className="font-mono">4111 1111 1111 1111</span>, any future expiry, any CVV.
               </p>
               <button type="submit" disabled={busy}
                 className="w-full rounded-sm bg-primary px-6 py-4 text-sm text-primary-foreground hover:opacity-90 transition disabled:opacity-50">
-                {busy ? "Placing order…" : `Place order · ${formatPrice(total)}`}
+                {busy ? "Preparing payment…" : `Pay ${formatPrice(total)}`}
               </button>
             </div>
           </form>
